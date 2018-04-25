@@ -1,0 +1,146 @@
+/**
+ * My attempt at multi code management for locks.  Based on rboy.
+ */
+definition(
+    name: "Brent's Crappy Lock Code Management",
+    namespace: "brentopolis",
+    author: "Brent Watkins",
+    description: "Manage user codes for focks",
+    category: "Safety & Security",
+    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Allstate/lock_it_when_i_leave.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Allstate/lock_it_when_i_leave@2x.png"
+)
+
+
+preferences {
+	page(name: "chooseLocksPage", nextPage: "codesPage", uninstall:true) {
+    	section {
+        	input "locks", "capability.lock", title: "Lock(s)", multiple: true
+        }
+        section {
+            input "count", "number", title: "Number of Codes", description: 10
+        }
+    }
+    
+    page(name: "codesPage", install:true)
+}
+
+def codesPage() {
+    dynamicPage(name: "codesPage") {
+    	section {
+        	for (int i = 1; i <= Math.min(count, 10); ++i) {
+            	input "code$i", "number", title: "Code #$i", required: false
+            }
+        }
+    }
+}
+/*
+def installed()
+{
+	runIn(1, setCodes)
+}
+*/
+def updated()
+{
+	runIn(1, setCodes)
+}
+
+def blankIfNull(str) {
+	if (str) {
+    	return str
+    } else {
+    	return ""
+    }
+}
+
+def setCode(lock, index, code) {
+	if (code) {
+    	log.info "setting code $index for $lock"
+        lock.setCode(index, code)
+    } else {
+    	log.info "deleting code $index for $lock"
+        lock.deleteCode(index)
+    }
+}
+
+def setCodes() {
+    for (lock in locks) {
+    	log.info "setting $count lock codes for $lock"
+
+		// ugh
+        //
+        /*
+        if (count >= 1) {
+        	setCode(lock, 1, code1)        
+        }
+        if (count >= 2) {
+        	setCode(lock, 2, code2)           
+        }
+        if (count >= 3) {
+        	setCode(lock, 3, code3)
+        }
+        if (count >= 4) {
+        	setCode(lock, 4, code4)
+        }
+        if (count >= 5) {
+        	setCode(lock, 5, code5)
+        }
+        if (count >= 6) {
+        	setCode(lock, 6, code6)
+        }
+        if (count >= 7) {
+        	setCode(lock, 7, code7)
+        }
+        if (count >= 8) {
+        	setCode(lock, 8, code8)
+        }
+        if (count >= 9) {
+        	setCode(lock, 9, code9)
+        }
+        if (count >= 10) {
+        	setCode(lock, 10, code10)
+        }
+        */
+        
+        def codeString = '{'
+        
+        if (count >= 1) {
+        	codeString += '"code1":"' + blankIfNull(code1) + '"'
+        }
+        if (count >= 2) {
+        	codeString += ',"code2":"' + blankIfNull(code2) + '"'
+        }
+        if (count >= 3) {
+        	codeString += ',"code3":"' + blankIfNull(code3) + '"'
+        }
+        if (count >= 4) {
+        	codeString += ',"code4":"' + blankIfNull(code4) + '"'
+        }
+        if (count >= 5) {
+        	codeString += ',"code5":"' + blankIfNull(code5) + '"'
+        }
+        if (count >= 6) {
+        	codeString += ',"code6":"' + blankIfNull(code6) + '"'
+        }
+        if (count >= 7) {
+        	codeString += ',"code7":"' + blankIfNull(code7) + '"'
+        }
+        if (count >= 8) {
+        	codeString += ',"code8":"' + blankIfNull(code8) + '"'
+        }
+        if (count >= 9) {
+        	codeString += ',"code9":"' + blankIfNull(code9) + '"'
+        }
+        if (count >= 10) {
+        	codeString += ',"code10":"' + blankIfNull(code10) + '"'
+        }
+        
+        codeString += '}'
+        
+        log.info(codeString)
+        lock.updateCodes(codeString)
+        
+        sendNotificationEvent("updated lock codes for $lock")
+        sendPush "updated lock codes for $lock"
+    }
+}
